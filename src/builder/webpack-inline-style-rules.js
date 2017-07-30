@@ -1,11 +1,13 @@
-module.exports = function(extractPlugins) {
+let ExtractTextPlugin = require('extract-text-webpack-plugin');
+module.exports = function(extractPlugins, rules) {
+	let sourceMapStyle = !Mix.isUsing('hmr') && Mix.isUsing('sourcemaps');
 	let styleLoaders = {
 		css: {
 			loader: 'css-loader',
 			options: Object.assign(
-				Config.singleExtract.options.css, {
+				Config.inlineStyle.options.css, {
 					url: Config.processCssUrls,
-					sourceMap: Mix.isUsing('sourcemaps'),
+					sourceMap: sourceMapStyle,
 					importLoaders: 1
 				}
 			)
@@ -13,7 +15,7 @@ module.exports = function(extractPlugins) {
 		postcss: {
 			loader: 'postcss-loader',
 			options: {
-				sourceMap: Mix.isUsing('sourcemaps'),
+				sourceMap: sourceMapStyle,
 				ident: 'postcss',
 				plugins: [
 					require('autoprefixer')
@@ -25,38 +27,38 @@ module.exports = function(extractPlugins) {
 		less: {
 			loader: 'less-loader',
 			options: Object.assign(
-				Config.singleExtract.options.less, {
-					sourceMap: Mix.isUsing('sourcemaps')
+				Config.inlineStyle.options.less, {
+					sourceMap: sourceMapStyle
 				}
 			)
 		},
 		sassRewrite: {
 			loader: 'resolve-url-loader',
 			options: {
-				sourceMap: true,
+				sourceMap: sourceMapStyle,
 				root: Mix.paths.root('node_modules')
 			}
 		},
 		sass: {
 			loader: "sass-loader",
 			options: Object.assign(
-				Config.singleExtract.options.sass, {
-					sourceMap: Config.processCssUrls ? true : Mix.isUsing('sourcemaps')
+				Config.inlineStyle.options.sass, {
+					sourceMap: Config.processCssUrls && !Mix.isUsing('hmr') ? true : sourceMapStyle
 				}
 			)
 		}
 	}
 
 
-	let singleExtractPlugin = extractPlugins.length ? extractPlugins[0] : new ExtractTextPlugin({
-		filename: 'css/all.css',
+	let inlineExtractPlugin = extractPlugins.length ? extractPlugins[0] : new ExtractTextPlugin({
+		filename: Config.inlineStyle.filename,
 		allChunks: true,
 		disable: Mix.isUsing('hmr')
 	});
 	rules.push({
 		test: /\.css$/,
 		exclude: Config.preprocessors.postCss ? Config.preprocessors.postCss.map(postCss => postCss.src.path()) : [],
-		use: singleExtractPlugin.extract({
+		use: inlineExtractPlugin.extract({
 			fallback: "style-loader",
 			use: [styleLoaders.css, styleLoaders.postcss]
 		})
@@ -64,27 +66,28 @@ module.exports = function(extractPlugins) {
 	rules.push({
 		test: /\.less$/,
 		exclude: Config.preprocessors.less ? Config.preprocessors.less.map(less => less.src.path()) : [],
-		use: singleExtractPlugin.extract({
+		use: inlineExtractPlugin.extract({
 			fallback: "style-loader",
 			use: [styleLoaders.css, styleLoaders.postcss, styleLoaders.less]
 		})
 	});
-	let sassPostLoader = styleLoaders.postcss;
-	let sassLoaders = [styleLoaders.css];
+	let sassLoaders = [styleLoaders.css, styleLoaders.postcss];
 	if (Config.processCssUrls) {
-		sassPostLoader.options.sourceMap = true;
-		sassLoaders.push(sassPostLoader, styleLoaders.sassRewrite, styleLoaders.sass);
-	} else {
-		sassLoaders.push(sassPostLoader, styleLoaders.sass);
+		sassLoaders.push(styleLoaders.sassRewrite);
 	}
+	sassLoaders.push(styleLoaders.sass);
 	rules.push({
 		test: /\.s[ac]ss$/,
 		exclude: Config.preprocessors.sass ? Config.preprocessors.sass.map(sass => sass.src.path()) : [],
-		use: singleExtractPlugin.extract({
+		use: inlineExtractPlugin.extract({
 			fallback: "style-loader",
 			use: sassLoaders
 		})
 	});
 
-	return singleExtractPlugin;
+	extractPlugins.push(inlineExtractPlugin);
+	return {
+		extractPlugins,
+		rules
+	};
 }

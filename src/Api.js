@@ -18,7 +18,10 @@ class Api {
         entry = [].concat(entry).map(file => new File(file));
         output = new File(output);
 
-        Config.js.push({ entry, output });
+        Config.js.push({
+            entry,
+            output
+        });
 
         return this;
     }
@@ -70,7 +73,9 @@ class Api {
         pluginOptions = Object.assign({
             precision: 8,
             outputStyle: 'expanded'
-        }, pluginOptions, { sourceMap: true });
+        }, pluginOptions, {
+            sourceMap: true
+        });
 
         return this.preprocess('sass', src, output, pluginOptions);
     }
@@ -145,7 +150,9 @@ class Api {
         output = this._normalizeOutput(new File(output), src.nameWithoutExtension() + '.css');
 
         Config.preprocessors['postCss'] = (Config.preprocessors['postCss'] || []).concat({
-            src, output, postCssPlugins
+            src,
+            output,
+            postCssPlugins
         });
 
         return this;
@@ -168,7 +175,9 @@ class Api {
         output = this._normalizeOutput(new File(output), src.nameWithoutExtension() + '.css');
 
         Config.preprocessors[type] = (Config.preprocessors[type] || []).concat({
-            src, output, pluginOptions
+            src,
+            output,
+            pluginOptions
         });
 
         if (type === 'fastSass') {
@@ -193,12 +202,18 @@ class Api {
 
         if (typeof src === 'string' && File.find(src).isDirectory()) {
             src = _.pull(
-                glob.sync(path.join(src, '**/*'), { nodir: true }),
+                glob.sync(path.join(src, '**/*'), {
+                    nodir: true
+                }),
                 output.relativePath()
             );
         }
 
-        let task = new ConcatFilesTask({ src, output, babel });
+        let task = new ConcatFilesTask({
+            src,
+            output,
+            babel
+        });
 
         Mix.addTask(task);
 
@@ -267,7 +282,8 @@ class Api {
      */
     copy(from, to) {
         let task = new CopyFilesTask({
-            from, to: new File(to)
+            from,
+            to: new File(to)
         });
 
         Mix.addTask(task);
@@ -295,13 +311,14 @@ class Api {
      */
     browserSync(config = {}) {
         Verify.dependency(
-            'browser-sync-webpack-plugin',
-            ['browser-sync-webpack-plugin', 'browser-sync'],
+            'browser-sync-webpack-plugin', ['browser-sync-webpack-plugin', 'browser-sync'],
             true
         );
 
         if (typeof config === 'string') {
-            config = { proxy: config };
+            config = {
+                proxy: config
+            };
         }
 
         Config.browserSync = config;
@@ -323,16 +340,19 @@ class Api {
                 filePath += (path.sep + '**/*');
             }
 
-            if (! filePath.includes('*')) return filePath;
+            if (!filePath.includes('*')) return filePath;
 
             return glob.sync(
-                new File(filePath).forceFromPublic().relativePath(),
-                { nodir: true }
+                new File(filePath).forceFromPublic().relativePath(), {
+                    nodir: true
+                }
             );
         }));
 
         Mix.addTask(
-            new VersionFilesTask({ files })
+            new VersionFilesTask({
+                files
+            })
         );
 
         return this;
@@ -347,7 +367,10 @@ class Api {
      * @param {string} output
      */
     extract(libs, output) {
-        Config.extractions.push({ libs, output });
+        Config.extractions.push({
+            libs,
+            output
+        });
 
         return this;
     };
@@ -450,6 +473,7 @@ class Api {
     }
 
 
+
     /* Set Mix-specific options.
      *
      * @param {object} options
@@ -459,8 +483,7 @@ class Api {
             options.purifyCss = require('./PurifyPaths').build(options.purifyCss);
 
             Verify.dependency(
-                'purifycss-webpack',
-                ['purifycss-webpack', 'purify-css'],
+                'purifycss-webpack', ['purifycss-webpack', 'purify-css'],
                 true // abortOnComplete
             );
         }
@@ -504,6 +527,17 @@ class Api {
         }
 
         return output;
+    }
+
+    inlineStyle(config = {}) {
+        if (typeof config === 'string') {
+            config = {
+                filename: config
+            };
+        }
+        Config.extractInlineStyle = true;
+        Config.inlineStyle = Object.assign(Config.inlineStyle, config);
+        return this;
     }
 }
 

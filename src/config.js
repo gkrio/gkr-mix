@@ -18,10 +18,15 @@ module.exports = function() {
          */
         js: [],
 
-        singleExtract: {
-            css: {},
-            less: {},
-            sass: {}
+        extractInlineStyle: false,
+
+        inlineStyle: {
+            filename: 'css/all.css',
+            options: {
+                css: {},
+                less: {},
+                sass: {}
+            }
         },
 
         /**

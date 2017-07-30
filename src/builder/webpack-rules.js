@@ -28,30 +28,32 @@ module.exports = function() {
         });
     }
 
+    if (!Config.extractInlineStyle) {
+        // CSS Compilation.
+        rules.push({
+            test: /\.css$/,
 
-    // // CSS Compilation.
-    // rules.push({
-    //     test: /\.css$/,
-
-    //     exclude: Config.preprocessors.postCss ? Config.preprocessors.postCss.map(postCss => postCss.src.path()) : [],
-    //     loaders: ['style-loader', 'css-loader']
-    // });
-
-
-    // // Recognize .scss Imports.
-    // rules.push({
-    //     test: /\.s[ac]ss$/,
-    //     exclude: Config.preprocessors.sass ? Config.preprocessors.sass.map(sass => sass.src.path()) : [],
-    //     loaders: ['style-loader', 'css-loader', 'sass-loader']
-    // });
+            exclude: Config.preprocessors.postCss ? Config.preprocessors.postCss.map(postCss => postCss.src.path()) : [],
+            loaders: ['style-loader', 'css-loader']
+        });
 
 
-    // // Recognize .less Imports.
-    // rules.push({
-    //     test: /\.less$/,
-    //     exclude: Config.preprocessors.less ? Config.preprocessors.less.map(less => less.src.path()) : [],
-    //     loaders: ['style-loader', 'css-loader', 'less-loader']
-    // });
+        // Recognize .scss Imports.
+        rules.push({
+            test: /\.s[ac]ss$/,
+            exclude: Config.preprocessors.sass ? Config.preprocessors.sass.map(sass => sass.src.path()) : [],
+            loaders: ['style-loader', 'css-loader', 'sass-loader']
+        });
+
+
+        // Recognize .less Imports.
+        rules.push({
+            test: /\.less$/,
+            exclude: Config.preprocessors.less ? Config.preprocessors.less.map(less => less.src.path()) : [],
+            loaders: ['style-loader', 'css-loader', 'less-loader']
+        });
+    }
+
 
 
     // Add support for loading HTML files.
@@ -189,8 +191,11 @@ module.exports = function() {
         });
     });
 
-    extractPlugins.push(require('./webpack-style-rules')(extractPlugins));
-
+    if (Config.extractInlineStyle) {
+        let styleExtract = require('./webpack-inline-style-rules')(extractPlugins, rules);
+        extractPlugins = styleExtract.extractPlugins;
+        rules = styleExtract.rules;
+    }
 
     // Vue Compilation.
     let vueExtractPlugin;
