@@ -1,7 +1,7 @@
 let webpack = require('webpack');
 let ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-module.exports = function () {
+module.exports = function() {
     let rules = [];
     let extractPlugins = [];
 
@@ -9,12 +9,10 @@ module.exports = function () {
     rules.push({
         test: /\.jsx?$/,
         exclude: /(node_modules|bower_components)/,
-        use: [
-            {
-                loader: 'babel-loader',
-                options: Config.babel()
-            }
-        ]
+        use: [{
+            loader: 'babel-loader',
+            options: Config.babel()
+        }]
     });
 
 
@@ -66,12 +64,11 @@ module.exports = function () {
     // Add support for loading images.
     rules.push({
         test: /\.(png|jpe?g|gif)$/,
-        loaders: [
-            {
+        loaders: [{
                 loader: 'file-loader',
                 options: {
                     name: path => {
-                        if (! /node_modules|bower_components/.test(path)) {
+                        if (!/node_modules|bower_components/.test(path)) {
                             return 'images/[name].[ext]?[hash]';
                         }
 
@@ -99,7 +96,7 @@ module.exports = function () {
         loader: 'file-loader',
         options: {
             name: path => {
-                if (! /node_modules|bower_components/.test(path)) {
+                if (!/node_modules|bower_components/.test(path)) {
                     return 'fonts/[name].[ext]?[hash]';
                 }
 
@@ -135,8 +132,7 @@ module.exports = function () {
             let outputPath = preprocessor.output.filePath.replace(Config.publicPath + path.sep, path.sep);
 
             tap(new ExtractTextPlugin(outputPath), extractPlugin => {
-                let loaders = [
-                    {
+                let loaders = [{
                         loader: 'css-loader',
                         options: {
                             url: Config.processCssUrls,
@@ -153,9 +149,7 @@ module.exports = function () {
                             plugins: [
                                 require('autoprefixer')
                             ].concat(
-                                preprocessor.postCssPlugins && preprocessor.postCssPlugins.length
-                                    ? preprocessor.postCssPlugins
-                                    : Config.postCss
+                                preprocessor.postCssPlugins && preprocessor.postCssPlugins.length ? preprocessor.postCssPlugins : Config.postCss
                             )
                         }
                     },
@@ -175,21 +169,27 @@ module.exports = function () {
                     loaders.push({
                         loader: `${type}-loader`,
                         options: Object.assign(
-                            preprocessor.pluginOptions,
-                            { sourceMap: (type === 'sass' && Config.processCssUrls) ? true : Mix.isUsing('sourcemaps') }
+                            preprocessor.pluginOptions, {
+                                sourceMap: (type === 'sass' && Config.processCssUrls) ? true : Mix.isUsing('sourcemaps')
+                            }
                         )
                     });
                 }
 
                 rules.push({
                     test: preprocessor.src.path(),
-                    use: extractPlugin.extract({ fallback: 'style-loader', use: loaders })
+                    use: extractPlugin.extract({
+                        fallback: 'style-loader',
+                        use: loaders
+                    })
                 });
 
                 extractPlugins.push(extractPlugin);
             });
         });
     });
+
+    extractPlugins.push(require('./webpack-style-rules')(extractPlugins));
 
 
     // Vue Compilation.
@@ -249,9 +249,12 @@ module.exports = function () {
 
     // If there were no existing extract text plugins to add our
     // Vue styles extraction too, we'll push a new one in.
-    if (Config.extractVueStyles && ! extractPlugins.length) {
+    if (Config.extractVueStyles && !extractPlugins.length) {
         extractPlugins.push(vueExtractPlugin);
     }
 
-    return { rules, extractPlugins };
+    return {
+        rules,
+        extractPlugins
+    };
 }

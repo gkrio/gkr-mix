@@ -1,7 +1,7 @@
-let paths = new (require('./Paths'));
+let paths = new(require('./Paths'));
 let webpackMerge = require('webpack-merge');
 
-module.exports = function () {
+module.exports = function() {
     return {
         /**
          * Determine if webpack should be triggered in a production environment.
@@ -18,6 +18,11 @@ module.exports = function () {
          */
         js: [],
 
+        singleExtract: {
+            css: {}
+            less: {},
+            sass: {}
+        },
 
         /**
          * A list of custom assets that are being compiled outside of Webpack.
@@ -159,11 +164,11 @@ module.exports = function () {
 
 
         /**
-        * Image Loader defaults.
-        * See: https://github.com/thetalecrafter/img-loader#options
-        *
-        * @type {Object}
-        */
+         * Image Loader defaults.
+         * See: https://github.com/thetalecrafter/img-loader#options
+         *
+         * @type {Object}
+         */
         imgLoaderOptions: {
             enabled: true,
             gifsicle: {},
@@ -178,7 +183,7 @@ module.exports = function () {
          *
          * @type {Object}
          */
-        babel: function () {
+        babel: function() {
             let options = {};
 
             tap(Mix.paths.root('.babelrc'), babelrc => {
