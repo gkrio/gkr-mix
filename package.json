@@ -1,6 +1,6 @@
 {
   "name": "gkr-mix",
-  "version": "1.4.3",
+  "version": "1.4.5",
   "description": "Gkr mix is a gkr framework assets manager based on laravel-mix.",
   "main": "src/index.js",
   "scripts": {

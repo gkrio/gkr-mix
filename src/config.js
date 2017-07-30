@@ -19,7 +19,7 @@ module.exports = function() {
         js: [],
 
         singleExtract: {
-            css: {}
+            css: {},
             less: {},
             sass: {}
         },
